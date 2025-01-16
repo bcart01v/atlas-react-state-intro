@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useEnrolledCourses } from './App';
 
 export default function SchoolCatalog() {
   const [courses, setCourses] = useState([]);
@@ -7,6 +8,8 @@ export default function SchoolCatalog() {
   const [sortDirection, setSortDirection] = useState('asc');
   const [currentPage, setCurrentPage] = useState(1);
   const rowsPerPage = 5;
+
+  const { enrollCourse } = useEnrolledCourses();
 
   useEffect(() => {
     fetch('/api/courses.json')
@@ -33,8 +36,8 @@ export default function SchoolCatalog() {
   });
 
   const filteredCourses = sortedCourses.filter(course =>
-    course.courseNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    course.courseName.toLowerCase().includes(searchTerm.toLowerCase())
+      course.courseNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      course.courseName.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const startIndex = (currentPage - 1) * rowsPerPage;
@@ -65,9 +68,9 @@ export default function SchoolCatalog() {
   return (
     <div className="school-catalog">
       <h1>School Catalog</h1>
-      <input 
-        type="text" 
-        placeholder="Search by course number or name" 
+      <input
+        type="text"
+        placeholder="Search by course number or name"
         value={searchTerm}
         onChange={e => setSearchTerm(e.target.value)}
       />
@@ -101,21 +104,21 @@ export default function SchoolCatalog() {
               <td>{course.semesterCredits}</td>
               <td>{course.totalClockHours}</td>
               <td>
-                <button>Enroll</button>
+                <button onClick={() => enrollCourse(course)}>Enroll</button>
               </td>
             </tr>
           ))}
         </tbody>
       </table>
       <div className="pagination">
-        <button 
-          onClick={handlePreviousPage} 
+        <button
+          onClick={handlePreviousPage}
           disabled={currentPage === 1}
         >
           Previous
         </button>
-        <button 
-          onClick={handleNextPage} 
+        <button
+          onClick={handleNextPage}
           disabled={currentPage === Math.ceil(filteredCourses.length / rowsPerPage)}
         >
           Next
