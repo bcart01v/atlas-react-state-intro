@@ -3,6 +3,8 @@ import React, { useState, useEffect } from 'react';
 export default function SchoolCatalog() {
   const [courses, setCourses] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
+  const [sortColumn, setSortColumn] = useState('');
+  const [sortDirection, setSortDirection] = useState('asc');
 
   useEffect(() => {
     fetch('/api/courses.json')
@@ -11,10 +13,36 @@ export default function SchoolCatalog() {
       .catch(error => console.error('Error fetching data:', error));
   }, []);
 
-  const filteredCourses = courses.filter(course =>
+  const sortedCourses = [...courses].sort((a, b) => {
+    if (!sortColumn) return 0;
+
+    const aValue = a[sortColumn];
+    const bValue = b[sortColumn];
+
+    if (typeof aValue === 'string') {
+      return sortDirection === 'asc'
+        ? aValue.localeCompare(bValue)
+        : bValue.localeCompare(aValue);
+    } else if (typeof aValue === 'number') {
+      return sortDirection === 'asc' ? aValue - bValue : bValue - aValue;
+    }
+
+    return 0;
+  });
+
+  const filteredCourses = sortedCourses.filter(course =>
     course.courseNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
     course.courseName.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  const handleSort = (column) => {
+    if (sortColumn === column) {
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortColumn(column);
+      setSortDirection('asc');
+    }
+  };
 
   return (
     <div className="school-catalog">
@@ -28,11 +56,21 @@ export default function SchoolCatalog() {
       <table>
         <thead>
           <tr>
-            <th>Trimester</th>
-            <th>Course Number</th>
-            <th>Course Name</th>
-            <th>Semester Credits</th>
-            <th>Total Clock Hours</th>
+            <th onClick={() => handleSort('trimester')}>
+              Trimester {sortColumn === 'trimester' && (sortDirection === 'asc' ? '▲' : '▼')}
+            </th>
+            <th onClick={() => handleSort('courseNumber')}>
+              Course Number {sortColumn === 'courseNumber' && (sortDirection === 'asc' ? '▲' : '▼')}
+            </th>
+            <th onClick={() => handleSort('courseName')}>
+              Course Name {sortColumn === 'courseName' && (sortDirection === 'asc' ? '▲' : '▼')}
+            </th>
+            <th onClick={() => handleSort('semesterCredits')}>
+              Semester Credits {sortColumn === 'semesterCredits' && (sortDirection === 'asc' ? '▲' : '▼')}
+            </th>
+            <th onClick={() => handleSort('totalClockHours')}>
+              Total Clock Hours {sortColumn === 'totalClockHours' && (sortDirection === 'asc' ? '▲' : '▼')}
+            </th>
             <th>Enroll</th>
           </tr>
         </thead>
