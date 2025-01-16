@@ -5,6 +5,8 @@ export default function SchoolCatalog() {
   const [searchTerm, setSearchTerm] = useState('');
   const [sortColumn, setSortColumn] = useState('');
   const [sortDirection, setSortDirection] = useState('asc');
+  const [currentPage, setCurrentPage] = useState(1);
+  const rowsPerPage = 5;
 
   useEffect(() => {
     fetch('/api/courses.json')
@@ -35,12 +37,28 @@ export default function SchoolCatalog() {
     course.courseName.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  const startIndex = (currentPage - 1) * rowsPerPage;
+  const endIndex = startIndex + rowsPerPage;
+  const currentCourses = filteredCourses.slice(startIndex, endIndex);
+
   const handleSort = (column) => {
     if (sortColumn === column) {
       setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
     } else {
       setSortColumn(column);
       setSortDirection('asc');
+    }
+  };
+
+  const handleNextPage = () => {
+    if (currentPage < Math.ceil(filteredCourses.length / rowsPerPage)) {
+      setCurrentPage(currentPage + 1);
+    }
+  };
+
+  const handlePreviousPage = () => {
+    if (currentPage > 1) {
+      setCurrentPage(currentPage - 1);
     }
   };
 
@@ -75,7 +93,7 @@ export default function SchoolCatalog() {
           </tr>
         </thead>
         <tbody>
-          {filteredCourses.map((course, index) => (
+          {currentCourses.map((course, index) => (
             <tr key={index}>
               <td>{course.trimester}</td>
               <td>{course.courseNumber}</td>
@@ -90,8 +108,18 @@ export default function SchoolCatalog() {
         </tbody>
       </table>
       <div className="pagination">
-        <button>Previous</button>
-        <button>Next</button>
+        <button 
+          onClick={handlePreviousPage} 
+          disabled={currentPage === 1}
+        >
+          Previous
+        </button>
+        <button 
+          onClick={handleNextPage} 
+          disabled={currentPage === Math.ceil(filteredCourses.length / rowsPerPage)}
+        >
+          Next
+        </button>
       </div>
     </div>
   );
